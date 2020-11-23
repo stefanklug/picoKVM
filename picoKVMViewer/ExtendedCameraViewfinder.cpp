@@ -335,3 +335,8 @@ void ExtendedCameraViewfinder::focusInEvent(QFocusEvent *event)
     mWaitUntilMouseRelease = true;
     setMouseTracking(true);
 }
+
+bool ExtendedCameraViewfinder::focusNextPrevChild(bool next) {
+    //We return false, to get the tab key events
+    return false;
+}

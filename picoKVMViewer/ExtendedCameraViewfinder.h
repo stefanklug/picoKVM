@@ -26,6 +26,8 @@ protected:
 
     void sendMouseMessage();
 
+    bool focusNextPrevChild(bool next);
+
 private:
     Q_DISABLE_COPY(ExtendedCameraViewfinder)
 
