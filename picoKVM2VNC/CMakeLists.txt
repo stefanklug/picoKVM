@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.1)
 
 project(picoKVM2VNC VERSION 1.0 LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(VNCS REQUIRED libvncserver)
 pkg_check_modules(V4L REQUIRED libv4l2)

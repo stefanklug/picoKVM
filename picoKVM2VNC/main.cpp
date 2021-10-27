@@ -26,10 +26,13 @@
 #include <libv4l2.h>
 #include <rfb/rfb.h>
 #include <rfb/keysym.h>
+#include <getopt.h>
 #include "keymapper.h"
+#include "argparse.hpp"
 
-#include <set>
-#include <map>
+#include <string>
+
+using namespace std;
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -229,7 +232,8 @@ int main(int argc, char **argv)
     struct timeval                  tv;
     int                             r, fd = -1;
     unsigned int                    i, n_buffers;
-    const char*                     dev_name = "/dev/video0";
+    string                          video_dev;
+    string                          hid_emu_dev;
     char                            out_name[256];
     FILE                            *fout;
     struct buffer                   *buffers;
@@ -237,9 +241,34 @@ int main(int argc, char **argv)
     int                             width = 1920;
     int                             height = 1080;
 
-    fd = v4l2_open(dev_name, O_RDWR | O_NONBLOCK, 0);
+    argparse::ArgumentParser program("picoKVM2VNC", "0.0.1", argparse::default_arguments::help);
+    program.add_argument("-v", "--verbose")
+           .help("Be more verbose")
+           .default_value(false)
+           .implicit_value(true)
+           .nargs(0);
+    program.add_argument("-d", "--video-device")
+           .help("Use video device <dev> instead of /dev/video0")
+           .default_value(string("/dev/video0"));
+    program.add_argument("-e", "--hid-emu-device")
+           .help("Use HID emu device <dev> instead of /dev/ttyUSB0")
+           .default_value(string("/dev/ttyUSB0"));
+
+    try {
+        program.parse_args(argc, argv);
+    } catch (const std::runtime_error& err) {
+        std::cout << err.what() << std::endl;
+        std::cout << program;
+        std::exit(0);
+    }
+
+    video_dev = program.get<string>("--video-device");
+    hid_emu_dev = program.get<string>("--hid-emu-device");
+
+
+    fd = v4l2_open(video_dev.c_str(), O_RDWR | O_NONBLOCK, 0);
     if (fd < 0) {
-        perror("Cannot open device");
+        fprintf(stderr, "Failed to open video device '%s'\n", video_dev.c_str());
         exit(EXIT_FAILURE);
     }
 
@@ -279,10 +308,9 @@ int main(int argc, char **argv)
     rfbInitServer(rfbScreen);
 
     /* init serial port */
-    const char *portname = "/dev/ttyUSB0";
-    serial_fd = open (portname, O_RDWR | O_NOCTTY | O_NDELAY);
+    serial_fd = open (hid_emu_dev.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
     if (serial_fd < 0) {
-        printf ("error %d opening %s: %s", errno, portname, strerror (errno));
+        printf ("error %d opening %s: %s", errno, hid_emu_dev.c_str(), strerror (errno));
         exit(EXIT_FAILURE);
     }
 
