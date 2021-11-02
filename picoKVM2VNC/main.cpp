@@ -363,9 +363,6 @@ int main(int argc, char **argv)
         sendMouseEventIfNeeded(gcl);
         readSerial(serial_fd);
 
-        
-
-        //simply try to deque a buffer
         CLEAR(buf);
         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buf.memory = V4L2_MEMORY_MMAP;
