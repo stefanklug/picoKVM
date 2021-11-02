@@ -8,6 +8,19 @@
 #include "keymapper.h"
 
 
+std::map<uint32_t, uint8_t> createKeyMap() {
+    std::map<uint32_t, uint8_t> result;
+    for (const auto &v : vncScanToHIDList_de) {
+        for(int i=0; i<v.size()-1; i++) {
+            result[v[i]] = v.back();
+        }
+    }
+    return result;
+}
+
+static std::map<uint32_t, uint8_t> vncScanToHIDMap = createKeyMap();
+
+
 static void updateBits(uint8_t* data, uint8_t mask, int8_t enable) {
     if(enable) {
         *data = *data | mask;
@@ -27,6 +40,11 @@ int applyVncKeyEvent(HIDKeyboardStatus* status, const char* keymap, rfbBool down
         return -2;
     }
 
+    //some sanity changes
+    if(key == XK_ISO_Level3_Shift) {
+        key = XK_Alt_R;
+    }
+
     switch(key) {
         case XK_Control_L: updateBits(&status->modifiers, KEY_MOD_LCTRL, down); break;
         case XK_Shift_L:   updateBits(&status->modifiers, KEY_MOD_LSHIFT, down); break;
@@ -36,8 +54,6 @@ int applyVncKeyEvent(HIDKeyboardStatus* status, const char* keymap, rfbBool down
         case XK_Shift_R:   updateBits(&status->modifiers, KEY_MOD_RSHIFT, down); break;
         case XK_Alt_R:     updateBits(&status->modifiers, KEY_MOD_RALT, down); break;
         case XK_Meta_R:    updateBits(&status->modifiers, KEY_MOD_RMETA, down); break;
-
-        case XK_ISO_Level3_Shift:    updateBits(&status->modifiers, KEY_MOD_RALT, down); break;
     }
     
     //find the usb key
@@ -52,26 +68,24 @@ int applyVncKeyEvent(HIDKeyboardStatus* status, const char* keymap, rfbBool down
        key != XK_Control_R && 
        key != XK_Shift_R && 
        key != XK_Alt_R && 
-       key != XK_Meta_R &&
-       key != XK_ISO_Level3_Shift
+       key != XK_Meta_R
     ) {
-        if(status->modifiers & KEY_MOD_RALT || status->modifiers & KEY_MOD_RALT) {
-            auto res = vncAltGrScanToHID.find(key);
-            if(res != vncAltGrScanToHID.end()) {
-                usbKey = res->second;
-            }
-        }
-        
-        if(status->modifiers & KEY_MOD_LSHIFT || status->modifiers & KEY_MOD_RSHIFT) {
-            auto res = vncShiftScanToHID.find(key);
-            if(res != vncShiftScanToHID.end()) {
-                usbKey = res->second;
-            }
+        uint32_t mods = 0;
+        if(status->modifiers & KEY_MOD_LALT || status->modifiers & KEY_MOD_RALT) {
+            mods |= KM_ALTGR;
         }
 
-        if(usbKey == 0) {
-            auto res = vncScanToHID.find(key);
-            if(res != vncScanToHID.end()) {
+        if(status->modifiers & KEY_MOD_LSHIFT || status->modifiers & KEY_MOD_RSHIFT) {
+            mods |= KM_SHIFT;
+        }
+
+        auto res = vncScanToHIDMap.find(key | mods);
+        if(res != vncScanToHIDMap.end()) {
+            usbKey = res->second;
+        } else {
+            //fallback without modifiers
+            res = vncScanToHIDMap.find(key);
+            if(res != vncScanToHIDMap.end()) {
                 usbKey = res->second;
             }
         }
