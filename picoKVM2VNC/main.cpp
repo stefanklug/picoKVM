@@ -121,8 +121,8 @@ set_blocking (int fd, int should_block)
 
 class ClientData {
 public:
-  HIDKeyboardStatus keyboardStatus;
-  uint8_t mouseButtonMask;
+  HIDKeyboardStatus keyboardStatus = {0};
+  uint8_t mouseButtonMask = 0;
   uint16_t mouseX;
   uint16_t mouseY;
   int8_t mouseWheel;
