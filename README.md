@@ -12,6 +12,9 @@ or one that is always in te way.
  * A USB Keyboard & Mouse Emulator that allows your host PC to send Input to the Pi
  * Some Software that provides a KVM Window using above pieces.
 
+![System Overview](./docs/systemoverview.png)
+
+
 This repo contains all the neccesary data for such a setup.
 
 # Projects
