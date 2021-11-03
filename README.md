@@ -13,9 +13,21 @@ Idea
 
 This repo contains all the neccesary data for such a setup.
 
-Projects
-picoKVMViewer
+# Projects
+## picoKVMViewer
 - No longer in development. Please ignore
 
-picoKVM2VNC
+## picoKVM2VNC
 Provides a vnc server using the video data from the HDMI capture card and sends Keyborad & Mouse data trough the HID emulator.
+
+To build:
+```
+sudo apt install cmake libvncserver-dev libv4l-dev
+cd picoKVM2VNC
+cmake .
+make
+
+```
+
+## usb-hid-emulator
+Arduino project for Atmega32u4 based arduinos (e.g. SparkFun pro micro) to act as a HID emulator
