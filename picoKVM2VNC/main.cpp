@@ -37,6 +37,7 @@ using namespace std;
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 int serial_fd = 0;
+bool verbose = false;
 
 struct buffer {
     void   *start;
@@ -153,7 +154,9 @@ static void sendString(int fd, const char* str) {
     char buf[64];
     int l;
     write (fd, str, strlen(str));
-    printf("%s\n", str);
+    if(verbose) {
+        printf("%s\n", str);
+    }
 }
 
 static void sendMouseEventIfNeeded(ClientData* cd) {
@@ -264,6 +267,7 @@ int main(int argc, char **argv)
         std::exit(0);
     }
 
+    verbose = program.get<bool>("--verbose");
     video_dev = program.get<string>("--video-device");
     hid_emu_dev = program.get<string>("--hid-emu-device");
 
