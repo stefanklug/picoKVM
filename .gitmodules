@@ -1,0 +1,3 @@
+[submodule "usb-hid-emulator/Arduino-Makefile"]
+	path = usb-hid-emulator/Arduino-Makefile
+	url = https://github.com/sudar/Arduino-Makefile.git
