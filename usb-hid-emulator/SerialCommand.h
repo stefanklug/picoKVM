@@ -49,8 +49,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // You don't have to use SoftwareSerial features if this is not defined, you can still only use 
 // the Hardware serial port, just that this way lets you get out of having to include 
 // the SoftwareSerial.h header. 
-//#define SERIALCOMMAND_HARDWAREONLY 1
-#undef SERIALCOMMAND_HARDWAREONLY
+#define SERIALCOMMAND_HARDWAREONLY 1
+//#undef SERIALCOMMAND_HARDWAREONLY
 
 #ifdef SERIALCOMMAND_HARDWAREONLY
 #warning "Warning: Building SerialCommand without SoftwareSerial Support"
@@ -63,7 +63,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 
 
-#define SERIALCOMMANDBUFFER 16
+#define SERIALCOMMANDBUFFER 64
 #define MAXSERIALCOMMANDS	10
 #define MAXDELIMETER 2
 

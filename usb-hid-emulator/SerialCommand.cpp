@@ -87,16 +87,16 @@ void SerialCommand::readSerial()
 {
 	// If we're using the Hardware port, check it.   Otherwise check the user-created SoftwareSerial Port
 	#ifdef SERIALCOMMAND_HARDWAREONLY
-	while (Serial.available() > 0) 
+	while (Serial1.available() > 0) 
 	#else
-	while ((usingSoftwareSerial==0 && Serial.available() > 0) || (usingSoftwareSerial==1 && SoftSerial->available() > 0) )
+	while ((usingSoftwareSerial==0 && Serial1.available() > 0) || (usingSoftwareSerial==1 && SoftSerial->available() > 0) )
 	#endif
 	{
 		int i; 
 		boolean matched; 
 		if (usingSoftwareSerial==0) {
 			// Hardware serial port
-			inChar=Serial.read();   // Read single available character, there may be more waiting
+			inChar=Serial1.read();   // Read single available character, there may be more waiting
 		} else {
 			#ifndef SERIALCOMMAND_HARDWAREONLY
 			// SoftwareSerial port
@@ -104,12 +104,12 @@ void SerialCommand::readSerial()
 			#endif
 		}
 		#ifdef SERIALCOMMANDDEBUG
-		Serial.print(inChar);   // Echo back to serial stream
+		Serial1.print(inChar);   // Echo back to serial stream
 		#endif
 		if (inChar==term) {     // Check for the terminator (default '\r') meaning end of command
 			#ifdef SERIALCOMMANDDEBUG
-			Serial.print("Received: "); 
-			Serial.println(buffer);
+			Serial1.print("Received: "); 
+			Serial1.println(buffer);
 		    #endif
 			bufPos=0;           // Reset to start of buffer
 			token = strtok_r(buffer,delim,&last);   // Search for command at start of buffer
@@ -117,18 +117,18 @@ void SerialCommand::readSerial()
 			matched=false; 
 			for (i=0; i<numCommand; i++) {
 				#ifdef SERIALCOMMANDDEBUG
-				Serial.print("Comparing ["); 
-				Serial.print(token); 
-				Serial.print("] to [");
-				Serial.print(CommandList[i].command);
-				Serial.println("]");
+				Serial1.print("Comparing ["); 
+				Serial1.print(token); 
+				Serial1.print("] to [");
+				Serial1.print(CommandList[i].command);
+				Serial1.println("]");
 				#endif
 				// Compare the found command against the list of known commands for a match
 				if (strncmp(token,CommandList[i].command,SERIALCOMMANDBUFFER) == 0) 
 				{
 					#ifdef SERIALCOMMANDDEBUG
-					Serial.print("Matched Command: "); 
-					Serial.println(token);
+					Serial1.print("Matched Command: "); 
+					Serial1.println(token);
 					#endif
 					// Execute the stored handler function for the command
 					(*CommandList[i].function)(); 
@@ -159,10 +159,10 @@ void SerialCommand::addCommand(const char *command, void (*function)())
 {
 	if (numCommand < MAXSERIALCOMMANDS) {
 		#ifdef SERIALCOMMANDDEBUG
-		Serial.print(numCommand); 
-		Serial.print("-"); 
-		Serial.print("Adding command for "); 
-		Serial.println(command); 
+		Serial1.print(numCommand); 
+		Serial1.print("-"); 
+		Serial1.print("Adding command for "); 
+		Serial1.println(command); 
 		#endif
 		
 		strncpy(CommandList[numCommand].command,command,SERIALCOMMANDBUFFER); 
@@ -173,7 +173,7 @@ void SerialCommand::addCommand(const char *command, void (*function)())
 		// Not much we can do since there is no real visible error assertion, we just ignore adding
 		// the command
 		#ifdef SERIALCOMMANDDEBUG
-		Serial.println("Too many handlers - recompile changing MAXSERIALCOMMANDS"); 
+		Serial1.println("Too many handlers - recompile changing MAXSERIALCOMMANDS"); 
 		#endif 
 	}
 }
