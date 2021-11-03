@@ -27,8 +27,13 @@ sudo apt install cmake libvncserver-dev libv4l-dev
 cd picoKVM2VNC
 cmake .
 make
-
 ```
+
+### Status
+ * Keyboard emulation (currently only the german keyboard layout is implemented)
+ * Mouse emulation including scrollwheel
+ * Tested with remmina
+ * Issues with UltraVNC on Windows
 
 ## usb-hid-emulator
 Arduino project for Atmega32u4 based arduinos (e.g. SparkFun pro micro) to act as a HID emulator
