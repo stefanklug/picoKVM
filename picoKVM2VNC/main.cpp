@@ -174,13 +174,15 @@ static void doptr(int buttonMask,int x,int y,rfbClientPtr cl)
     int w = 1920;
     int h = 1080;
     int8_t wheel = 0;
-    uint8_t mask = buttonMask & 0x7;
+
+    //swap mouse button 2 & 3
+    uint8_t mask = (buttonMask & 0x1) | (buttonMask & 0x2) << 1 | (buttonMask & 0x4) >> 1;
 
     int ox = (int)((x/(float)w)*32767.0);
     int oy = (int)((y/(float)h)*32767.0);
 
-    if(buttonMask & 0x8) wheel = 127;
-    else if(buttonMask & 0x10) wheel = -127;
+    if(buttonMask & 0x8) wheel = 1;
+    else if(buttonMask & 0x10) wheel = -1;
 
     uint8_t oldMask = cd->mouseButtonMask;
 
