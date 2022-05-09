@@ -16,3 +16,5 @@ add_executable(picoKVM2VNC main.cpp keymapper.cpp)
 target_include_directories(picoKVM2VNC PUBLIC ${VNCS_INCLUDE_DIRS} ${V4L_INCLUDE_DIRS} ${V4LC_INCLUDE_DIRS})
 target_compile_options(picoKVM2VNC PUBLIC ${VNCS_CFLAGS_OTHER} ${V4L_CFLAGS_OTHER} ${V4LC_CFLAGS_OTHER})
 target_link_libraries(picoKVM2VNC ${VNCS_LIBRARIES} ${V4L_LIBRARIES} ${V4LC_LIBRARIES})
+
+install(TARGETS picoKVM2VNC)
