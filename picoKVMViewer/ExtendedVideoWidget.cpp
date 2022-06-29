@@ -1,4 +1,4 @@
-#include "ExtendedCameraViewfinder.h"
+#include "ExtendedVideoWidget.h"
 #include<QDebug>
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -124,7 +124,7 @@ std::map<uint32_t, int> nativeScanToHID = {
     {0x41, KEY_SPACE}
 };
 
-ExtendedCameraViewfinder::ExtendedCameraViewfinder(QWidget *parent):QCameraViewfinder (parent)
+ExtendedVideoWidget::ExtendedVideoWidget(QWidget *parent):QVideoWidget(parent)
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -133,8 +133,9 @@ ExtendedCameraViewfinder::ExtendedCameraViewfinder(QWidget *parent):QCameraViewf
         qDebug() << "Serial Port " << info.portName();
     }
 
-    mPort.setPortName("ttyProMicro");
-    mPort.setBaudRate(9600);
+    //mPort.setPortName("ttyProMicro");
+    mPort.setPortName("ttyUSB0");
+    mPort.setBaudRate(57600);
     mPort.open(QIODevice::ReadWrite);
 
     mOldButtons = 0;
@@ -148,7 +149,7 @@ ExtendedCameraViewfinder::ExtendedCameraViewfinder(QWidget *parent):QCameraViewf
     mMouseTimerId = startTimer(20);
 }
 
-ExtendedCameraViewfinder::~ExtendedCameraViewfinder()
+ExtendedVideoWidget::~ExtendedVideoWidget()
 {
 
 }
@@ -168,7 +169,7 @@ uint8_t nativeScanCodeToHidModifier(uint32_t scanCode) {
 }
 
 
-void ExtendedCameraViewfinder::keyPressEvent(QKeyEvent *event)
+void ExtendedVideoWidget::keyPressEvent(QKeyEvent *event)
 {
     //Autorepeat is done by the target
     if(event->isAutoRepeat()) return;
@@ -203,7 +204,7 @@ void ExtendedCameraViewfinder::keyPressEvent(QKeyEvent *event)
     sendKeyboardMessage();
 }
 
-void ExtendedCameraViewfinder::keyReleaseEvent(QKeyEvent *event)
+void ExtendedVideoWidget::keyReleaseEvent(QKeyEvent *event)
 {
     //Autorepeat is done by the target
     if(event->isAutoRepeat()) return;
@@ -225,7 +226,7 @@ void ExtendedCameraViewfinder::keyReleaseEvent(QKeyEvent *event)
     sendKeyboardMessage();
 }
 
-void ExtendedCameraViewfinder::sendKeyboardMessage()
+void ExtendedVideoWidget::sendKeyboardMessage()
 {
     qDebug() << "Keyvoard Message " << hex << mModifiers << mPressedKeys;
 
@@ -242,7 +243,7 @@ void ExtendedCameraViewfinder::sendKeyboardMessage()
     //qDebug() << data;
 }
 
-bool ExtendedCameraViewfinder::event(QEvent* event)
+bool ExtendedVideoWidget::event(QEvent* event)
 {
     QEvent::Type t = event->type();
     if(t == QEvent::MouseMove || t == QEvent::MouseButtonPress || t == QEvent::MouseButtonRelease || t == QEvent::MouseButtonDblClick) {
@@ -252,7 +253,7 @@ bool ExtendedCameraViewfinder::event(QEvent* event)
     return QVideoWidget::event(event);
 }
 
-void ExtendedCameraViewfinder::handleMouseEvent(QMouseEvent *event)
+void ExtendedVideoWidget::handleMouseEvent(QMouseEvent *event)
 {
     if(mWaitUntilMouseRelease) {
         if(event->button() == Qt::LeftButton && event->type() == QEvent::MouseButtonRelease) {
@@ -261,7 +262,7 @@ void ExtendedCameraViewfinder::handleMouseEvent(QMouseEvent *event)
         return;
     }
 
-    mNewPos = event->globalPos();
+    mNewPos = event->pos();
     mNewButtons = event->buttons();
 
     //changes in buttons must be reflected immediately, to get every change
@@ -270,7 +271,7 @@ void ExtendedCameraViewfinder::handleMouseEvent(QMouseEvent *event)
     }
 }
 
-void ExtendedCameraViewfinder::timerEvent(QTimerEvent *event) {
+void ExtendedVideoWidget::timerEvent(QTimerEvent *event) {
     if(event->timerId() == mMouseTimerId) {
         sendMouseMessage();
     }
@@ -283,51 +284,39 @@ void ExtendedCameraViewfinder::timerEvent(QTimerEvent *event) {
 
 }
 
-void ExtendedCameraViewfinder::sendMouseMessage() {
-    bool sendMessage = false;
-    QPoint diff = mNewPos - mOldPos;
+void ExtendedVideoWidget::sendMouseMessage() {
+    bool sendMessage = true;
 
     if(mNewButtons != mOldButtons) {
         sendMessage = true;
     }
 
-    if(!diff.isNull()) {
-        sendMessage = true;
-    }
+    //norm on 32767
+    int x = std::min(std::max(mNewPos.x(), 0), this->width());
+    int y = std::min(std::max(mNewPos.y(), 0), this->height());
+    x = (int)(x / (float)this->width() * 32767.0);
+    y = (int)(y / (float)this->height() * 32767.0);
 
     if(sendMessage) {
         //qDebug() << "Mouse message";
+        QByteArray data("M ");
+        data.append(QByteArray::number(mNewButtons & 0x7));
+        data.append(" ");
+        data.append(QByteArray::number(x));
+        data.append(" ");
+        data.append(QByteArray::number(y));
+        data.append(" 0"); // wheel
+        data.append("\r\n");
+        mPort.write(data);
 
-        QPoint maxMouseDiff;
-
-        //send messages until we handled all the movement
-        do {
-            maxMouseDiff.setX(std::max(-128, std::min(diff.x(), 127)));
-            maxMouseDiff.setY(std::max(-128, std::min(diff.y(), 127)));
-
-            QByteArray data("M ");
-            data.append(QByteArray::number(mNewButtons & 0x7));
-            data.append(" ");
-            data.append(QByteArray::number(maxMouseDiff.x()));
-            data.append(" ");
-            data.append(QByteArray::number(maxMouseDiff.y()));
-            data.append("\r\n");
-            mPort.write(data);
-
-            diff -= maxMouseDiff;
-        } while(!diff.isNull());
+        //qDebug() << data;
 
         //mPort.flush();
 
-        mNewPos = QPoint(500,500);
-        QCursor::setPos(mNewPos);
-
-        mOldPos = mNewPos;
-        mOldButtons = mNewButtons;
     }
 }
 
-void ExtendedCameraViewfinder::focusInEvent(QFocusEvent *event)
+void ExtendedVideoWidget::focusInEvent(QFocusEvent *event)
 {
     QCursor c(Qt::BlankCursor);
     grabKeyboard();
@@ -336,7 +325,7 @@ void ExtendedCameraViewfinder::focusInEvent(QFocusEvent *event)
     setMouseTracking(true);
 }
 
-bool ExtendedCameraViewfinder::focusNextPrevChild(bool next) {
+bool ExtendedVideoWidget::focusNextPrevChild(bool next) {
     //We return false, to get the tab key events
     return false;
 }

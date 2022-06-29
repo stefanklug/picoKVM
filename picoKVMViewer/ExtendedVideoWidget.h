@@ -1,17 +1,17 @@
 #ifndef EXTENDEDCAMERAVIEWFINDER_H
 #define EXTENDEDCAMERAVIEWFINDER_H
 
-#include<QCameraViewfinder>
+#include <QVideoWidget>
 #include <QSerialPort>
 #include <QPoint>
 #include <QTime>
 
-class ExtendedCameraViewfinder : public QCameraViewfinder
+class ExtendedVideoWidget : public QVideoWidget
 {
     Q_OBJECT
 public:
-    explicit ExtendedCameraViewfinder(QWidget *parent = nullptr);
-    ~ExtendedCameraViewfinder();
+    explicit ExtendedVideoWidget(QWidget *parent = nullptr);
+    ~ExtendedVideoWidget();
     
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -29,7 +29,7 @@ protected:
     bool focusNextPrevChild(bool next);
 
 private:
-    Q_DISABLE_COPY(ExtendedCameraViewfinder)
+    Q_DISABLE_COPY(ExtendedVideoWidget)
 
     QSerialPort mPort;
     bool mWaitUntilMouseRelease;
