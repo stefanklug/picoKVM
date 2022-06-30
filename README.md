@@ -19,7 +19,15 @@ This repo contains all the neccesary data for such a setup.
 
 # Projects
 ## picoKVMViewer
-- No longer in development. Please ignore
+Qt based viewer. This is in early development and still has many rough edges.
+
+To build:
+```
+sudo apt install cmake libqt5multimedia5-plugins qtmultimedia5-dev libqt5serialport5-dev
+cd picoKVMViewer
+cmake .
+make
+```
 
 ## picoKVM2VNC
 Provides a vnc server using the video data from the HDMI capture card and sends Keyborad & Mouse data trough the HID emulator.
