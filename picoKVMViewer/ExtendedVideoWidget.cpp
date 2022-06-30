@@ -128,15 +128,7 @@ ExtendedVideoWidget::ExtendedVideoWidget(QWidget *parent):QVideoWidget(parent)
 {
     setFocusPolicy(Qt::ClickFocus);
 
-    const auto infos = QSerialPortInfo::availablePorts();
-    for (const QSerialPortInfo &info : infos) {
-        qDebug() << "Serial Port " << info.portName();
-    }
-
-    //mPort.setPortName("ttyProMicro");
-    mPort.setPortName("ttyUSB0");
     mPort.setBaudRate(57600);
-    mPort.open(QIODevice::ReadWrite);
 
     mOldButtons = 0;
     mNewButtons = 0;
@@ -145,13 +137,20 @@ ExtendedVideoWidget::ExtendedVideoWidget(QWidget *parent):QVideoWidget(parent)
     mNewPos = mOldPos;
     mWaitUntilMouseRelease = false;
 
-
+    //throttle the mouse messages (gaming mice are really chatty :-)
     mMouseTimerId = startTimer(20);
 }
 
 ExtendedVideoWidget::~ExtendedVideoWidget()
 {
 
+}
+
+void ExtendedVideoWidget::setSerialPort(const QString &name)
+{
+    mPort.close();
+    mPort.setPortName(name);
+    mPort.open(QIODevice::ReadWrite);
 }
 
 uint8_t nativeScanCodeToHidModifier(uint32_t scanCode) {
@@ -285,10 +284,16 @@ void ExtendedVideoWidget::timerEvent(QTimerEvent *event) {
 }
 
 void ExtendedVideoWidget::sendMouseMessage() {
-    bool sendMessage = true;
+    bool sendMessage = false;
 
     if(mNewButtons != mOldButtons) {
         sendMessage = true;
+        mOldButtons = mNewButtons;
+    }
+
+    if(mNewPos != mOldPos) {
+        sendMessage = true;
+        mOldPos = mNewPos;
     }
 
     //norm on 32767

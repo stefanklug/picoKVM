@@ -12,6 +12,8 @@ class ExtendedVideoWidget : public QVideoWidget
 public:
     explicit ExtendedVideoWidget(QWidget *parent = nullptr);
     ~ExtendedVideoWidget();
+
+    void setSerialPort(const QString &serialPortName);
     
 protected:
     void keyPressEvent(QKeyEvent *event);
