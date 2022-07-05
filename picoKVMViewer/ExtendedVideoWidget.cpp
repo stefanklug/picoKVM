@@ -315,6 +315,14 @@ void ExtendedVideoWidget::keyPressEvent(QKeyEvent *event)
     uint32_t scanCode = event->nativeScanCode();
 
     uint8_t modifier = mModifiers | nativeScanCodeToHidModifier(scanCode);
+
+#ifdef Q_OS_WINDOWS
+    // On Windows, when the KeyDown event for AltGr key is sent, the Ctrl+Alt modifiers are also set.
+    // We have to delete the Ctrl modifier to make it work an linux targets
+    if (modifier & KEY_MOD_RALT)
+        modifier &= ~KEY_MOD_LCTRL;
+#endif // Q_OS_WINDOWS
+
     if(modifier != mModifiers) {
         mModifiers = modifier;
         somethingChanged = true;
