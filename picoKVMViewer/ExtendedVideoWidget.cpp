@@ -124,6 +124,7 @@ std::map<uint32_t, int> nativeScanToHID = {
     {0x41, KEY_SPACE}
 };
 
+#define PICOKVM_RELEASE_KEY 0x69    // right ctrl
 ExtendedVideoWidget::ExtendedVideoWidget(QWidget *parent):QVideoWidget(parent)
 {
     setFocusPolicy(Qt::ClickFocus);
@@ -175,8 +176,8 @@ void ExtendedVideoWidget::keyPressEvent(QKeyEvent *event)
 
     qDebug() << "KeyPress " << hex << event->key() << " vk: " << event->nativeVirtualKey() << " ScanCode: " << event->nativeScanCode() << " " << event;
 
-    //check for right ctrl
-    if(event->nativeVirtualKey() == 65508) {
+    //check for release key
+    if(event->nativeScanCode() == PICOKVM_RELEASE_KEY) {
         releaseMouse();
         releaseKeyboard();
         clearFocus();
