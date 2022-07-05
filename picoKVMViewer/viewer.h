@@ -2,7 +2,11 @@
 #define VIEWER_H
 
 #include <QMediaPlayer>
+
+#ifdef Q_OS_WINDOWS
+#include <QCamera>
 #include <QScopedPointer>
+#endif
 
 #include <QMainWindow>
 
@@ -34,6 +38,10 @@ private:
     QList<QString> m_pipelines;
 
     QString m_videoDevice;
+
+#ifdef Q_OS_WINDOWS
+    QScopedPointer<QCamera> m_camera;
+#endif
 };
 
 #endif

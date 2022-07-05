@@ -7,6 +7,10 @@
 
 #include <QtWidgets>
 
+#ifdef Q_OS_WINDOWS
+#include <QCameraInfo>
+Q_DECLARE_METATYPE(QCameraInfo) // needed for ->setData(QVariant::fromValue(cameraInfo))
+#endif
 
 Viewer::Viewer() : ui(new Ui::Viewer)
 {
@@ -69,6 +73,7 @@ Viewer::Viewer() : ui(new Ui::Viewer)
 
     connect(videoDevicesGroup, &QActionGroup::triggered, this, &Viewer::updateVideoDevice);
 
+#ifdef Q_OS_LINUX
     buildPipelines();
 
     m_player = new QMediaPlayer;
@@ -76,6 +81,7 @@ Viewer::Viewer() : ui(new Ui::Viewer)
     connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &Viewer::mediaPlayerError);
     connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &Viewer::mediaStatusChanged);
     tryNextPipeline();
+#endif
 }
 
 void Viewer::buildPipelines()
@@ -133,8 +139,18 @@ void Viewer::updateSerialPort(QAction *action) {
 void Viewer::updateVideoDevice(QAction *action)
 {
     m_videoDevice = action->text();
+#ifdef Q_OS_LINUX
     buildPipelines();
     tryNextPipeline();
+#endif
+
+#ifdef Q_OS_WINDOWS
+    QCameraInfo cameraInfo = qvariant_cast<QCameraInfo>(action->data());
+    m_camera.reset(new QCamera(cameraInfo));
+    m_camera->setViewfinder(ui->videoview);
+    m_camera->setCaptureMode(QCamera::CaptureViewfinder);
+    m_camera->start();
+#endif
 }
 
 
