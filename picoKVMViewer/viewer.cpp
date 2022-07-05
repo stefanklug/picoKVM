@@ -87,15 +87,9 @@ void Viewer::buildPipelines()
 
     QString sink="xvimagesink name=\"qtvideosink\"";
     QString format="width=1920,height=1080";
-#ifdef Q_OS_LINUX
     m_pipelines.append(QString("v4l2src device=%1 ! video/x-raw,%2 ! %3").arg(m_videoDevice, format, sink));
     m_pipelines.append(QString("v4l2src device=%1 ! video/x-raw,%2 ! videoconvert ! %3").arg(m_videoDevice, format, sink));
     m_pipelines.append(QString("v4l2src device=%1 ! image/jpeg,%2 ! jpegdec ! %3").arg(m_videoDevice, format, sink));
-#endif
-
-#ifdef Q_OS_WIN
-    m_pipelines.append(QString("ksvideosrc device-index=%1 ! image/jpeg,%2 ! jpegdec ! %3").arg(m_videoDevice, format, sink));
-#endif
 
     m_nextPipelineIdx = 0;
 }
