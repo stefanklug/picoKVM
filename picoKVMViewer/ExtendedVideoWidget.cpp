@@ -277,7 +277,7 @@ void ExtendedVideoWidget::timerEvent(QTimerEvent *event) {
 
     char buf[1024];
     qint64 lineLength = mPort.readLine(buf, sizeof(buf));
-    if(lineLength) {
+    if(lineLength > 0) {
         qDebug() << "Arduino: " << buf;
     }
 
