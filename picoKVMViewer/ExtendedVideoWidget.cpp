@@ -227,7 +227,7 @@ void ExtendedVideoWidget::keyReleaseEvent(QKeyEvent *event)
 
 void ExtendedVideoWidget::sendKeyboardMessage()
 {
-    qDebug() << "Keyvoard Message " << hex << mModifiers << mPressedKeys;
+    //qDebug() << "Keyboard Message " << hex << mModifiers << mPressedKeys;
 
     QByteArray data("D ");
     data.append(QByteArray::number(mModifiers));
