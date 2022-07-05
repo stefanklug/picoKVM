@@ -52,18 +52,18 @@ Viewer::Viewer() : ui(new Ui::Viewer)
 #endif
 
 #ifdef Q_OS_WINDOWS
-    //TODO find actual camera device paths
-    m_videoDevice = "0";
-    QStringList deviceIds = { "0", "1", "2", "3" };
-    for (QString deviceId : deviceIds) {
-        QAction *videoDeviceAction = new QAction(deviceId, videoDevicesGroup);
+    m_videoDevice = "USB3. 0 capture";
+    const QList<QCameraInfo> availableCameras = QCameraInfo::availableCameras();
+    for (const QCameraInfo &cameraInfo : availableCameras) {
+        qDebug() << "Video Device:" << cameraInfo.description() << cameraInfo.deviceName();
+        QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
         videoDeviceAction->setCheckable(true);
+        videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
+        ui->menuSettings->addAction(videoDeviceAction);
         if(videoDeviceAction->text() == m_videoDevice) {
             videoDeviceAction->setChecked(true);
+            updateVideoDevice(videoDeviceAction);
         }
-        ui->menuSettings->addAction(videoDeviceAction);
-
-        qDebug() << "Video Device: " << deviceId;
     }
 #endif
 
