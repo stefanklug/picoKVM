@@ -29,6 +29,7 @@ Viewer::Viewer() : ui(new Ui::Viewer)
 
     connect(serialPortsGroup, &QActionGroup::triggered, this, &Viewer::updateSerialPort);
 
+    ui->menuSettings->addSeparator();
 
     QActionGroup *videoDevicesGroup = new QActionGroup(this);
     serialPortsGroup->setExclusive(true);
