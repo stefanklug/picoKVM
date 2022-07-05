@@ -12,6 +12,9 @@ Viewer::Viewer() : ui(new Ui::Viewer)
 {
     ui->setupUi(this);
 
+    ui->toolBar->hide();
+    ui->statusbar->hide();
+
     QActionGroup *serialPortsGroup = new QActionGroup(this);
     serialPortsGroup->setExclusive(true);
 
