@@ -7,10 +7,17 @@
 
 #include <QtWidgets>
 
+#ifdef Q_OS_WINDOWS
+#include <QCameraInfo>
+Q_DECLARE_METATYPE(QCameraInfo) // needed for ->setData(QVariant::fromValue(cameraInfo))
+#endif
 
 Viewer::Viewer() : ui(new Ui::Viewer)
 {
     ui->setupUi(this);
+
+    ui->toolBar->hide();
+    ui->statusbar->hide();
 
     QActionGroup *serialPortsGroup = new QActionGroup(this);
     serialPortsGroup->setExclusive(true);
@@ -26,6 +33,7 @@ Viewer::Viewer() : ui(new Ui::Viewer)
 
     connect(serialPortsGroup, &QActionGroup::triggered, this, &Viewer::updateSerialPort);
 
+    ui->menuSettings->addSeparator();
 
     QActionGroup *videoDevicesGroup = new QActionGroup(this);
     serialPortsGroup->setExclusive(true);
@@ -48,23 +56,24 @@ Viewer::Viewer() : ui(new Ui::Viewer)
 #endif
 
 #ifdef Q_OS_WINDOWS
-    //TODO find actual camera device paths
-    m_videoDevice = "0";
-    QStringList deviceIds = { "0", "1", "2", "3" };
-    for (QString deviceId : deviceIds) {
-        QAction *videoDeviceAction = new QAction(deviceId, videoDevicesGroup);
+    m_videoDevice = "USB3. 0 capture";
+    const QList<QCameraInfo> availableCameras = QCameraInfo::availableCameras();
+    for (const QCameraInfo &cameraInfo : availableCameras) {
+        qDebug() << "Video Device:" << cameraInfo.description() << cameraInfo.deviceName();
+        QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
         videoDeviceAction->setCheckable(true);
+        videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
+        ui->menuSettings->addAction(videoDeviceAction);
         if(videoDeviceAction->text() == m_videoDevice) {
             videoDeviceAction->setChecked(true);
+            updateVideoDevice(videoDeviceAction);
         }
-        ui->menuSettings->addAction(videoDeviceAction);
-
-        qDebug() << "Video Device: " << deviceId;
     }
 #endif
 
     connect(videoDevicesGroup, &QActionGroup::triggered, this, &Viewer::updateVideoDevice);
 
+#ifdef Q_OS_LINUX
     buildPipelines();
 
     m_player = new QMediaPlayer;
@@ -72,6 +81,7 @@ Viewer::Viewer() : ui(new Ui::Viewer)
     connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &Viewer::mediaPlayerError);
     connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &Viewer::mediaStatusChanged);
     tryNextPipeline();
+#endif
 }
 
 void Viewer::buildPipelines()
@@ -83,15 +93,9 @@ void Viewer::buildPipelines()
 
     QString sink="xvimagesink name=\"qtvideosink\"";
     QString format="width=1920,height=1080";
-#ifdef Q_OS_LINUX
     m_pipelines.append(QString("v4l2src device=%1 ! video/x-raw,%2 ! %3").arg(m_videoDevice, format, sink));
     m_pipelines.append(QString("v4l2src device=%1 ! video/x-raw,%2 ! videoconvert ! %3").arg(m_videoDevice, format, sink));
     m_pipelines.append(QString("v4l2src device=%1 ! image/jpeg,%2 ! jpegdec ! %3").arg(m_videoDevice, format, sink));
-#endif
-
-#ifdef Q_OS_WIN
-    m_pipelines.append(QString("ksvideosrc device-index=%1 ! image/jpeg,%2 ! jpegdec ! %3").arg(m_videoDevice, format, sink));
-#endif
 
     m_nextPipelineIdx = 0;
 }
@@ -135,8 +139,18 @@ void Viewer::updateSerialPort(QAction *action) {
 void Viewer::updateVideoDevice(QAction *action)
 {
     m_videoDevice = action->text();
+#ifdef Q_OS_LINUX
     buildPipelines();
     tryNextPipeline();
+#endif
+
+#ifdef Q_OS_WINDOWS
+    QCameraInfo cameraInfo = qvariant_cast<QCameraInfo>(action->data());
+    m_camera.reset(new QCamera(cameraInfo));
+    m_camera->setViewfinder(ui->videoview);
+    m_camera->setCaptureMode(QCamera::CaptureViewfinder);
+    m_camera->start();
+#endif
 }
 
 
