@@ -281,12 +281,12 @@ ExtendedVideoWidget::ExtendedVideoWidget(QWidget *parent):QVideoWidget(parent)
     mWaitUntilMouseRelease = false;
 
     //throttle the mouse messages (gaming mice are really chatty :-)
-    mMouseTimerId = startTimer(20);
+    mMouseTimerId = startTimer(5);
 }
 
 ExtendedVideoWidget::~ExtendedVideoWidget()
 {
-
+    killTimer(mMouseTimerId);
 }
 
 void ExtendedVideoWidget::setSerialPort(const QString &name)
