@@ -85,10 +85,10 @@ Viewer::Viewer() : ui(new Ui::Viewer)
 #ifdef Q_OS_LINUX
     buildPipelines();
 
-    m_player = new QMediaPlayer;
+    m_player.reset(new QMediaPlayer);
     m_player->setVideoOutput(ui->videoview);
-    connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &Viewer::mediaPlayerError);
-    connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &Viewer::mediaStatusChanged);
+    connect(m_player.get(), QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &Viewer::mediaPlayerError);
+    connect(m_player.get(), &QMediaPlayer::mediaStatusChanged, this, &Viewer::mediaStatusChanged);
     tryNextPipeline();
 #endif
 }

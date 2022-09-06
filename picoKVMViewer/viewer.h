@@ -33,7 +33,6 @@ private:
 
     Ui::Viewer *ui;
 
-    QMediaPlayer* m_player;
     int m_nextPipelineIdx;
     QList<QString> m_pipelines;
 
@@ -41,7 +40,10 @@ private:
 
 #ifdef Q_OS_WINDOWS
     QScopedPointer<QCamera> m_camera;
+#else
+    QScopedPointer<QMediaPlayer> m_player;
 #endif
+
 };
 
 #endif
