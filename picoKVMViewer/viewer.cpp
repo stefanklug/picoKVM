@@ -6,14 +6,20 @@
 #include <QSerialPortInfo>
 
 #include <QtWidgets>
+#include <QSettings>
 
 #ifdef Q_OS_WINDOWS
 #include <QCameraInfo>
 Q_DECLARE_METATYPE(QCameraInfo) // needed for ->setData(QVariant::fromValue(cameraInfo))
 #endif
 
+const char* kSettingsSerialPortKey = "serialPort";
+const char* kSettingsVideoDeviceKey = "videoDevice";
+
 Viewer::Viewer() : ui(new Ui::Viewer)
 {
+    QSettings settings;
+
     ui->setupUi(this);
 
     ui->toolBar->hide();
@@ -27,6 +33,9 @@ Viewer::Viewer() : ui(new Ui::Viewer)
         QAction *serialPortAction = new QAction(info.portName(), serialPortsGroup);
         serialPortAction->setCheckable(true);
         ui->menuSettings->addAction(serialPortAction);
+        if(serialPortAction->text() == settings.value(kSettingsSerialPortKey)) {
+            updateSerialPort(serialPortAction);
+        }
 
         qDebug() << "Serial Port " << info.portName();
     }
@@ -39,7 +48,7 @@ Viewer::Viewer() : ui(new Ui::Viewer)
     serialPortsGroup->setExclusive(true);
 
 #ifdef Q_OS_LINUX
-    m_videoDevice = "/dev/video0";
+    m_videoDevice = settings.value(kSettingsVideoDeviceKey, "/dev/video0" ).toString();
     QDir dir("/dev", "video*");
     dir.setFilter(QDir::System);
     QFileInfoList files = dir.entryInfoList();
@@ -56,7 +65,7 @@ Viewer::Viewer() : ui(new Ui::Viewer)
 #endif
 
 #ifdef Q_OS_WINDOWS
-    m_videoDevice = "USB3. 0 capture";
+    m_videoDevice = settings.value(kSettingsVideoDeviceKey, "USB3. 0 capture").toString();
     const QList<QCameraInfo> availableCameras = QCameraInfo::availableCameras();
     for (const QCameraInfo &cameraInfo : availableCameras) {
         qDebug() << "Video Device:" << cameraInfo.description() << cameraInfo.deviceName();
@@ -132,13 +141,18 @@ void Viewer::mediaStatusChanged(QMediaPlayer::MediaStatus status) {
 }
 
 void Viewer::updateSerialPort(QAction *action) {
+    QSettings settings;
     ui->videoview->setSerialPort(action->text());
     action->setChecked(true);
+    settings.setValue(kSettingsSerialPortKey, action->text());
 }
 
 void Viewer::updateVideoDevice(QAction *action)
 {
+    QSettings settings;
     m_videoDevice = action->text();
+    settings.setValue(kSettingsVideoDeviceKey, action->text());
+
 #ifdef Q_OS_LINUX
     buildPipelines();
     tryNextPipeline();
