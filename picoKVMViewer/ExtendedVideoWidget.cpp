@@ -60,6 +60,7 @@ std::map<uint32_t, int> nativeScanToHID = {
 
     {0x33, KEY_BACKSLASH},
 
+    {0x5e, KEY_102ND},
     {0x34, KEY_Z},
     {0x35, KEY_X},
     {0x36, KEY_C},
