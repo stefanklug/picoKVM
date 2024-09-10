@@ -100,11 +100,11 @@ void Viewer::buildPipelines()
         return;
     }
 
-    QString sink="xvimagesink name=\"qtvideosink\"";
+    QString sink="qtvideosink name=\"qtvideosink\"";
     QString format="width=1920,height=1080";
     m_pipelines.append(QString("v4l2src device=%1 ! video/x-raw,%2 ! %3").arg(m_videoDevice, format, sink));
     m_pipelines.append(QString("v4l2src device=%1 ! video/x-raw,%2 ! videoconvert ! %3").arg(m_videoDevice, format, sink));
-    m_pipelines.append(QString("v4l2src device=%1 ! image/jpeg,%2 ! jpegdec ! %3").arg(m_videoDevice, format, sink));
+    m_pipelines.append(QString("v4l2src device=%1 ! image/jpeg,%2 ! jpegdec ! videoconvert ! %3").arg(m_videoDevice, format, sink));
 
     m_nextPipelineIdx = 0;
 }
